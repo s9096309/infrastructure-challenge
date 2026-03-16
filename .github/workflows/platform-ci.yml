@@ -1,0 +1,39 @@
+name: Platform CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  terraform-static-analysis:
+    name: "Terraform Lint & Validate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        
+      - name: Terraform Validate
+        run: |
+          cd terraform/environments/dev
+          terraform init -backend=false
+          terraform validate
+
+  helm-static-analysis:
+    name: "Helm Lint & Dry-Run"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+      
+      - name: Helm Lint
+        run: helm lint helm/pumpkin-app/
+
+      - name: Helm Template (Dry-Run)
+        run: helm template pumpkin-test helm/pumpkin-app/

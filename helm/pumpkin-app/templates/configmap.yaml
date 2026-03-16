@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-html
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Pumpkin App</title>
+      <style>
+        body { background-color: #ff7518; color: white; text-align: center; font-family: sans-serif; padding-top: 50px; }
+        .pumpkin { font-size: 100px; }
+      </style>
+    </head>
+    <body>
+      <div class="pumpkin">🎃</div>
+      <h1>Pumpkin App is Live!</h1>
+      <p>Deployed via Terraform & Helm to AWS EKS</p>
+      <p><b>Environment:</b> {{ .Values.environment | default "dev" }}</p>
+    </body>
+    </html>

@@ -1,0 +1,16 @@
+# Default values for pumpkin-app.
+replicaCount: 1
+environment: "development"
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "alpine" # Security: Use smaller alpine image
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    cpu: 50m
+    memory: 128Mi
