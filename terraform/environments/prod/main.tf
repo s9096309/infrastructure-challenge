@@ -21,8 +21,8 @@ module "networking" {
 module "eks" {
   source = "../../modules/eks"
 
-  environment        = var.environment
-  private_subnet_ids = module.networking.private_subnet_ids
+  environment            = var.environment
+  private_subnet_ids     = module.networking.private_subnet_ids
   endpoint_public_access = var.endpoint_public_access
 
   # Production-grade compute and scaling

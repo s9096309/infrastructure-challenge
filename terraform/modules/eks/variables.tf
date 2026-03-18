@@ -42,6 +42,6 @@ variable "node_min_size" {
 
 variable "endpoint_public_access" {
   description = "Allow public access"
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
