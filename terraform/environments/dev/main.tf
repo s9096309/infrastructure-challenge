@@ -28,33 +28,3 @@ module "eks" {
   node_min_size       = 1
   node_max_size       = 2
 }
-
-# 3. Configure Helm Provider
-# Tell Helm how to securely authenticate with the new EKS cluster
-provider "helm" {
-  kubernetes = {
-    host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-    exec = {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
-      command     = "aws"
-    }
-  }
-}
-
-# 4. Deploy Workload via Helm
-resource "helm_release" "pumpkin_app" {
-  name             = "pumpkin-app"
-  chart            = "../../../helm/pumpkin-app"
-  namespace        = "application"
-  create_namespace = true
-
-  # Inject DEV-specific values file
-  values = [
-    file("../../../helm/pumpkin-app/values-dev.yaml")
-  ]
-
-  # Ensure cluster is fully ready before deploying
-  depends_on = [module.eks]
-}

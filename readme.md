@@ -46,12 +46,45 @@ terraform init
 terraform apply
 ```
 
-### Step 2: Accessing the Protected API
+### Step 2: Deploy the Application via Helm
 
-Since the service is strictly internal (Security Requirement), use the following secure tunnel to verify the web API:
+Since infrastructure lifecycle (Terraform) and application lifecycle (Helm) are decoupled to minimize the blast radius, the application is deployed independently.
 
+First, update your local kubeconfig to connect to the cluster:
 ```bash
-kubectl port-forward svc/pumpkin-app 8080:80 -n application
+aws eks --region eu-central-1 update-kubeconfig --name dev-pumpkin-cluster
 ```
 
-Now access the API at http://localhost:8080.
+Deploy the application using the environment-specific values:
+
+1) For Development
+
+```Bash
+helm upgrade --install pumpkin-app ./helm/pumpkin-app \
+  --namespace application \
+  --create-namespace \
+  -f ./helm/pumpkin-app/values-dev.yaml
+  ```
+
+2) For Production
+
+```Bash
+helm upgrade --install pumpkin-app ./helm/pumpkin-app \
+  --namespace application \
+  --create-namespace \
+  -f ./helm/pumpkin-app/values-prod.yaml
+  ```
+
+# 🛠️ Production Readiness & Future Improvements (Out of Scope for 3h Timebox)
+
+To transition this platform foundation into a fully hardened, production-ready DevSecOps setup, the following architectural enhancements are required:
+
+1. Identity & Least Privilege (IRSA): Currently, K8s workloads inherit the IAM role of the underlying EC2 worker node. For production, I would implement an OIDC provider and IAM Roles for Service Accounts (IRSA) to grant AWS permissions granularly at the Pod level.
+
+2. Secrets Management: EKS etcd encryption is omitted to simplify the MVP. In a real financial environment, Kubernetes secret encryption via AWS KMS is mandatory. Furthermore, I would use the External Secrets Operator to fetch application secrets dynamically from AWS Secrets Manager.
+
+3. High Availability vs. Cost (Networking): The production environment spans 3 Availability Zones, but currently routes egress traffic through a single NAT Gateway to optimize AWS costs for this challenge. A true production setup would provision one NAT Gateway per AZ to prevent a single point of failure.
+
+4. Continuous Deployment (GitOps): While Terraform provisions the cluster infrastructure, application deployments via Helm should ideally be handled by a GitOps controller like ArgoCD or Flux in the target architecture, rather than executing Helm directly from local machines or standard CI pipelines.
+
+5. Observability: Basic Readiness and Liveness probes are configured. Day-2 operations require deploying a logging stack (e.g., Fluent Bit) and monitoring (Prometheus/Grafana) to gain visibility into the cluster.
